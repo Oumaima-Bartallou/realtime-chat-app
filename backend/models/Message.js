@@ -7,6 +7,10 @@ const messageSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  senderUsername: { // 👈 الإضافة الوحيدة لتخزين الاسم مباشرة
+    type: String,
+    required: true
+  },
   text: {
     type: String,
     required: true,
