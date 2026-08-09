@@ -2,38 +2,48 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const dotenv = require('dotenv');
+const connectDB = require('./config/db');
+const authRoutes = require('./routes/authRoutes');
+
+// Load environment variables
+dotenv.config();
+
+// Connect to Database
+connectDB();
 
 const app = express();
+
+// Middlewares
 app.use(cors());
+app.use(express.json());
 
-// إنشاء سيرفر HTTP بربطه مع Express
+// API Routes
+app.use('/api/auth', authRoutes);
+
+// HTTP & Socket.io Setup
 const server = http.createServer(app);
-
-// إعداد Socket.io وتحديد السماح للـ Frontend بالاتصال
 const io = new Server(server, {
   cors: {
-    origin: "*", // يتيح الاتصال من أي واجهة (سنغيرها لاحقاً إذا لزم الأمر)
+    origin: process.env.CLIENT_URL || "*",
     methods: ["GET", "POST"]
   }
 });
 
-// الاستماع لاتصالات المستخدمين
+// Socket.io Connection
 io.on('connection', (socket) => {
-  console.log(`مستخدم جديد اتصل: ${socket.id}`);
+  console.log(`⚡ Socket connected: ${socket.id}`);
 
-  // استقبال الرسائل وإعادتها للجميع
   socket.on('send_message', (data) => {
     io.emit('receive_message', data);
   });
 
-  // عند انقطاع اتصال المستخدم
   socket.on('disconnect', () => {
-    console.log(`انقطع اتصال المستخدم: ${socket.id}`);
+    console.log(`❌ Socket disconnected: ${socket.id}`);
   });
 });
 
-// تشغيل السيرفر على البورت 3001
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
-  console.log(`server good :${PORT}`);
+  console.log(`🚀 Professional Server running on port: ${PORT}`);
 });
